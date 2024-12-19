@@ -132,7 +132,7 @@ unionStt = zipWith combine
 isDependent :: (Label, Label) -> [(Int, [Int])] -> Bool
 isDependent _ [] = False
 isDependent (prevNode, currentNode) ((cond,dependents):xs) = 
-  if prevNode `elem` dependents || ((prevNode == cond) && currentNode `elem` dependents)
+  if prevNode `elem` dependents 
     then True 
     else isDependent (prevNode, currentNode) xs
 

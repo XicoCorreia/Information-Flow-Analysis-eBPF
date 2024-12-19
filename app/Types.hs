@@ -53,6 +53,6 @@ data SecurityLevel = High | Low
 
 type State = [(Reg, SecurityLevel)]
 type Memory = SecurityLevel
-type HighSecurityContext = Set.Set (Int,[Int]) 
+type HighSecurityContext = Set.Set (Label,[Label]) 
 
 type SystemState = ([State], Memory, HighSecurityContext)
