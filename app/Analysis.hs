@@ -25,62 +25,62 @@ fixpointComputation graph ss eq =
 
 -- This function updates the System state with a new state for the node being processed.
 updateSystemState :: Dom.Rooted -> SystemState -> (Label, [(Label, Stmt)]) -> SystemState
-updateSystemState graph (states, mem, jumps) (nodeIdx, eqs) = 
-  (before ++ [state'] ++ after, mem', jumps')
+updateSystemState graph (states, mem, highContext) (nodeIdx, eqs) = 
+  (before ++ [state'] ++ after, mem', highContext')
   where
     startState = states !! nodeIdx
-    (state', mem', jumps') = processElement graph startState (states, mem, jumps) (nodeIdx, eqs)
+    (state', mem', highContext') = processElement graph startState (states, mem, highContext) (nodeIdx, eqs)
     before = take nodeIdx states 
     after = drop (nodeIdx + 1) states
     
 -- Processes the equations for a specific node, returning the updated state.     
 processElement :: Dom.Rooted -> State -> SystemState -> (Label, [(Label, Stmt)]) -> (State, Memory, HighSecurityContext)
 processElement _ state (_, m, j) (_,[]) = (state, m, j)
-processElement graph state (states, mem, jumps) (currentNode, ((prevNode, stmt):es)) = otherState
+processElement graph state (states, mem, highContext) (currentNode, ((prevNode, stmt):es)) = otherState
   where 
-    dependsOnJump = isDependent (prevNode, currentNode) (Set.toList jumps)
+    dependsOnJump = isDependent prevNode (Set.toList highContext)
     prevState = (states !! prevNode)
-    (state',  mem', jumps') = updateUsingStmt graph prevState mem jumps dependsOnJump (prevNode, currentNode) stmt 
+    (state',  mem', highContext') = updateUsingStmt graph prevState mem highContext dependsOnJump (prevNode, currentNode) stmt 
     newState = unionStt state state'
-    otherState = processElement graph newState (states,  mem', jumps') (currentNode, es)
+    otherState = processElement graph newState (states,  mem', highContext') (currentNode, es)
 
 -- Update a node's state by analysing the security level of an equation, it also updates the context if the equation 
 -- is a conditional jump, i.e. if cond.
 updateUsingStmt :: Dom.Rooted -> State -> Memory -> HighSecurityContext -> Bool -> (Int,Int) -> Stmt -> (State, Memory, HighSecurityContext)
-updateUsingStmt _ state mem jumps dependsOnJump _ (AssignReg r e) = 
+updateUsingStmt _ state mem highContext dependsOnJump _ (AssignReg r e) = 
   case lookup r state of 
     Nothing -> error ("Register: " ++ show r ++ " is not allowed to be used")
-    _ -> (updatedState, mem, jumps)
+    _ -> (updatedState, mem, highContext)
   where 
     secLevel = 
       if dependsOnJump 
         then High 
         else processExpression state e
     updatedState = updateRegisterSecurity r secLevel state
-updateUsingStmt _ state mem jumps dependsOnJump _ (AssignMem r e) = 
+updateUsingStmt _ state mem highContext dependsOnJump _ (AssignMem r e) = 
   case lookup r state of 
     Nothing -> error ("Register: " ++ show r ++ " is not allowed to be used")
-    _ -> (state, mem', jumps)
+    _ -> (state, mem', highContext)
   where
     secLevel = 
       if dependsOnJump 
         then High 
         else processExpression state e
     mem' = if mem == High then High else secLevel
-updateUsingStmt graph state mem jumps dependsOnJump (prevNode, _) (If cond _) =  
+updateUsingStmt graph state mem highContext dependsOnJump (prevNode, _) (If cond _) =  
   if secLevelCond == High || dependsOnJump 
     then 
       case find (\(n,_) -> n == prevNode) (ipdom graph) of
         Just (_, nodePD) -> 
-          (state, mem, Set.insert (prevNode, (highContextNodes prevNode nodePD graph)) jumps)
-        Nothing -> (state, mem, jumps)
-    else (state, mem, jumps)
+          (state, mem, Set.insert (prevNode, (highContextNodes prevNode nodePD graph)) highContext)
+        Nothing -> (state, mem, highContext)
+    else (state, mem, highContext)
   where
     (e1, e2) = extractExpsFromCond cond
     secLevelExp1 = processExpression state e1
     secLevelExp2 = processExpression state e2
     secLevelCond = if secLevelExp1 == Low && secLevelExp2 == Low then Low else High
-updateUsingStmt _ state mem jumps _ _ (Goto _) = (state, mem, jumps)  
+updateUsingStmt _ state mem highContext _ _ (Goto _) = (state, mem, highContext)  
 
 -- Process an expression, returning the security level of the expression.
 processExpression :: State -> Exp -> SecurityLevel
@@ -120,7 +120,7 @@ extractExpsFromCond (Equal e1 e2)      = (e1, e2)
 extractExpsFromCond (NotEqual e1 e2)   = (e1, e2)
 extractExpsFromCond (LessThan e1 e2)   = (e1, e2)
 extractExpsFromCond (LessEqual e1 e2)  = (e1, e2)
-extractExpsFromCond (GreaterThan e1 e2)  = (e1, e2)
+extractExpsFromCond (GreaterThan e1 e2)  = (e1, e2) 
 extractExpsFromCond (GreaterEqual e1 e2) = (e1, e2)
 
 -- Union of two states.
@@ -129,12 +129,12 @@ unionStt = zipWith combine
   where
     combine (reg, sec1) (_, sec2) = (reg, if sec1 == High || sec2 == High then High else Low)
 
-isDependent :: (Label, Label) -> [(Int, [Int])] -> Bool
+isDependent :: Label -> [(Label, [Label])] -> Bool
 isDependent _ [] = False
-isDependent (prevNode, currentNode) ((cond,dependents):xs) = 
+isDependent prevNode ((_,dependents):xs) = 
   if prevNode `elem` dependents 
     then True 
-    else isDependent (prevNode, currentNode) xs
+    else isDependent prevNode xs
 
 -- Returns the nodes that belong to the high security context starting in the node
 -- containing the jump and ending in the immediate post dominator of that node.
