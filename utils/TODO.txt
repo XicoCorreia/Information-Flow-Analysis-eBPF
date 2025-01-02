@@ -4,6 +4,5 @@ TODO Coding
 TODO Reading
 
 TODO Report
-1. Write report
-2. Generate better CFG
+
 
