@@ -1,10 +1,4 @@
-TODO Coding
-1. Test real ebpf programs
+TODO 
 
-TODO Reading
-
-TODO Report
-
-Notes
-Changed
+NOTES
 /usr/include/linux/types.h and posix_types.h
