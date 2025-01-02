@@ -1,0 +1,10 @@
+sudo cat /sys/kernel/debug/tracing/trace_pipe | grep "BPF triggered sys_enter_write"
+ sudo ./ecli run package.json
+ ./ecc minimal.bpf.c
+ 
+ clang -O2 -target bpf -c firstProg.c -o firstProg.o
+ sudo bpftool prog load firstProg.o /sys/fs/bpf/firstProg
+ 
+ hexdump myprog.o > myprog.txt
+
+sudo bpftool prog dump xlated id 494
