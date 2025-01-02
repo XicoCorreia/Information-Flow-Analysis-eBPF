@@ -5,4 +5,6 @@ TODO Reading
 
 TODO Report
 
-
+Notes
+Changed
+/usr/include/linux/types.h and posix_types.h
