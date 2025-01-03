@@ -1,4 +1,6 @@
 TODO 
+- Report Writing
+- More test cases
 
 NOTES
 /usr/include/linux/types.h and posix_types.h
