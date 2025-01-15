@@ -12,7 +12,12 @@ make run-test EXAMPLE_NAME=<testname> SECRET_REGISTERS=[registers]
 ```
 Important to note that <testname> should be without the .asm extenstion.
 
-The CFG graphs will be created in the directory graphs/ with the same name as the test.
+The CFG graphs will be created in the directory graphs/ with the same name as the test. 
+To run cabal clean and remove all the created graphs and dot files run:
+
+```
+make clean
+```
 
 Visualise the CFG using cabal
 -----------------
