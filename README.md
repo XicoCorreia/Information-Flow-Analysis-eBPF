@@ -3,12 +3,12 @@ eBPF Information Flow Analysis
 To run all the tests with the information flow analysis, run the make file:
 
 ```
-make run-tests SECRET_REGISTERS = [registers]
+make run-tests SECRET_REGISTERS=[registers]
 ```
 To run a specific test with the information flow analysis, run the command:
 
 ```
-make run-test EXAMPLE_NAME=<testname> SECRET_REGISTERS = [registers]
+make run-test EXAMPLE_NAME=<testname> SECRET_REGISTERS=[registers]
 ```
 Important to note that <testname> should be without the .asm extenstion.
 
@@ -34,5 +34,5 @@ Example
 Run the test ifStatement.asm with r1 and r2 as the secret registers:
 
 ```
-make run-test EXAMPLE_NAME=ifStatement SECRET_REGISTERS = r1 r2
+make run-test EXAMPLE_NAME=ifStatement SECRET_REGISTERS=r1 r2
 ```
