@@ -12,8 +12,9 @@ make run-test EXAMPLE_NAME=<testname> SECRET_REGISTERS=[registers]
 ```
 Important to note that <testname> should be without the .asm extenstion.
 
+The CFG graphs will be created in the directory graphs/ with the same name as the test.
 
-Visualise the CFG
+Visualise the CFG using cabal
 -----------------
 To make a `dot` file of the CFG for an eBPF assembler file, say
 `examples/add.asm`, run the command:
